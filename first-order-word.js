@@ -5,15 +5,18 @@
 const fs = require("fs");
 
 function tokenize ( text ) {
-	return text.split(/[ \t\n'_?.,]+/gi);
+	return text.split(/[ \t\n'?.,]+/gi);
 }
 
 function firstOrderTransitionMapping( tokens, type ) {
 	let map = {};
 	let sum = {};
+	let token_count = 0;
 	// build the alphabet
 	for (let token of tokens) {
 		for (let i = 0; i < token.length; i++) {
+			if ( map[token[i]] == undefined ) 
+				token_count++;
 			map[token[i]] = {}; // new char
 			sum[token[i]] = 0; // new sum to compute later
 		}
@@ -46,7 +49,8 @@ function firstOrderTransitionMapping( tokens, type ) {
 	
 	return {
 		map : map,
-		sum : sum
+		sum : sum,
+		count : token_count
 	};
 }
 
@@ -59,8 +63,8 @@ function invent(transition, start, length_word, type) {
 	let result = start;
 	while ( lword-- ) {
 		const last = type == 'suffix' ? result[ result.length - 1 ] : result[0];
-		const from = trans.map;
-		const sum  = trans.sum[last];
+		const from = transition.map;
+		const sum  = transition.sum[last];
 		for (let item in from[last] ) {
 			// P(Current | Before) = transition[Before][Current] / sum[Before]
 			const prob = from[last][item] / sum;
@@ -81,13 +85,18 @@ function invent(transition, start, length_word, type) {
 }
 
 // test
-const text = fs.readFileSync("datas/verb.fr.txt").toString();
-const tokens = tokenize( text );
-const start = 'er';
-const type = 'prefix';
-const trans = firstOrderTransitionMapping( tokens, type );
-for ( let i = 0; i < 20; i++ ) {
-	const length = Math.floor( 5 + Math.random() * 10 );
-	const result = invent(trans, start, length, type);
-	console.log(result)
+function generate ( number ) {	
+	const text = fs.readFileSync("datas/verb.fr.txt").toString();
+	const tokens = tokenize( text );
+	const start = 'er';
+	const type = 'prefix';
+	const trans = firstOrderTransitionMapping( tokens, type );
+	console.log(`Tokens ${trans.count}`);
+	for ( let i = 0; i < number; i++ ) {
+		const length = Math.floor( 5 + Math.random() * 10 );
+		const result = invent(trans, start, length, type);
+		console.log(result)
+	}
 }
+
+generate (20);
