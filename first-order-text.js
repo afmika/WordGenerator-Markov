@@ -4,8 +4,57 @@
  */
 const fs = require("fs");
 
+function flatten ( array ) {
+	let result = [];
+	for (let value of array) {
+		if ( typeof value != 'object') {
+			result.push(value)
+		} else {			
+			for (let i = 0; i < value.length; i++) {
+				result.push( value[i] );
+			}
+		}
+	}
+	return result;
+}
+
 function tokenize ( text ) {
-	return text.split(/[ \t]+/gi);
+	let tokens = text.split(/[ \t]+/gi);
+	// \n|.|,|:|? should be treated as a word
+	for (let i = 0; i < tokens.length; i++) {
+		let token = tokens[i];
+		const symbols = /[\n.,:?]/gi;
+		const sep = '___';
+		let temp = token.replace(symbols, sep);
+		let done = {};
+		if ( temp != token ) {
+			let squeue = token.match(symbols);
+			let temp2 = temp.split( sep );
+			let result = [];
+			for ( let k = 0; k < temp2.length; k++) {
+				let first = squeue.shift();
+				if ( first != undefined ) {					
+					if ( temp2 == '' ) {
+						result.push( first );
+					} else {
+						if ( temp2[k] != '' )
+							result.push( temp2[k] );
+						result.push( first );
+					}
+				}
+			}
+			tokens[i] = result;
+		}		
+	}
+	return flatten(tokens);
+}
+
+function formatWordArrayAsText ( text_array ) {
+	let res = text_array.join(' ');
+	const rg = '[\n.,:?]';
+	return res.replace(new RegExp(' ' + rg, 'gi'), t => {
+		return t.split(' ').join('');
+	});
 }
 
 function firstOrderTransitionMapping( tokens, type ) {
@@ -76,17 +125,18 @@ function invent(transition, start, length_text, type) {
 
 // test
 // const text = fs.readFileSync("datas/speech/speech.fr.txt").toString();
-function generateUsing ( data_source, length) {	
+function generateUsing ( data_source, start, type, length) {	
 	const text = fs.readFileSync( data_source ).toString();
 	const tokens = tokenize( text );
-	const start = ['Descente'];
-	const type = 'suffix';
+	start = tokenize(start);
 	const trans = firstOrderTransitionMapping( tokens, type );
 	console.log(`Tokens ${trans.count}`);
 	const result = invent(trans, start, length, type);
-	console.log(result.join(' '))
+	console.log(' Result >>\n ', formatWordArrayAsText ( result ) );
 }
 
-const data_source = "datas/speech/alice.fr.txt";
+const data_source = "datas/speech/konosuba.en.txt";
 const length = 500; // max word
-generateUsing (data_source, length);
+let start = 'I';
+const type = 'suffix';
+generateUsing (data_source, start, type, length);
