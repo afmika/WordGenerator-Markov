@@ -1,5 +1,5 @@
 /**
- * Word generator using Markov's chain of the first order
+ * Text generator using Markov's chain of the first order
  * @author afmika
  */
 const fs = require("fs");
@@ -136,7 +136,7 @@ function generateUsing ( data_source, start, type, length) {
 }
 
 const data_source = "datas/speech/konosuba.en.txt";
-const length = 500; // max word
+const length = 500; // max nb of word
 let start = 'I';
 const type = 'suffix';
 generateUsing (data_source, start, type, length);
