@@ -1,13 +1,15 @@
 /**
- * Word generator using Markov's chain of the first order
+ * Word generator using Markov chains of the first order
  * @author afmika
  */
+ 
 const fs = require("fs");
+const Tools = require("./common/Tools");
 
-function tokenize ( text ) {
-	return text.split(/[ \t\n'?.,]+/gi);
-}
-
+/**
+ * @param {string[]} tokens 
+ * @param {string} type 
+ */
 function firstOrderTransitionMapping( tokens, type ) {
 	let map = {};
 	let sum = {};
@@ -53,7 +55,12 @@ function firstOrderTransitionMapping( tokens, type ) {
 		count : token_count
 	};
 }
-
+/**
+ * @param {object} transition 
+ * @param {string} start 
+ * @param {number} length_word 
+ * @param {string} type 
+ */
 function invent(transition, start, length_word, type) {
 	if ( start == '' ) {
 		let c  = Math.floor(97 + 26 * Math.random());
@@ -86,8 +93,8 @@ function invent(transition, start, length_word, type) {
 
 // test
 function generate ( number ) {	
-	const text = fs.readFileSync("datas/verb.fr.txt").toString();
-	const tokens = tokenize( text );
+	const text = fs.readFileSync("datas/words.fr.txt").toString().toUpperCase();
+	const tokens = Tools.tokenize( text );
 	const start = 'er';
 	const type = 'prefix';
 	const trans = firstOrderTransitionMapping( tokens, type );
